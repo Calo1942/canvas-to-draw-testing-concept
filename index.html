@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Colores de Imagen con Canvas</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            background-color: #999;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+        }
+
+        canvas {
+            border: 1px solid #ccc;
+            display: block;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+
+        #imageCanvas {
+            background-color: #337;
+            display: block;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        input[type="file"] {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Editar Colores de Imagen</h1>
+    <div class="controls">
+        <div class="canvas-size" style="border: 1px solid #333; padding: 10px;">
+            <label for="canvasWidth">Ancho del Canvas (cm):</label>
+            <input type="number" id="canvasWidth" value="30">
+            <label for="canvasHeight">Alto del Canvas (cm):</label>
+            <input type="number" id="canvasHeight" value="40">
+            <label for="canvasRatio">Proporcion del Canvas (cm):</label>
+            <input type="text" id="canvasRatio" value="16:9" disabled>
+        </div>
+        <input type="file" id="imageLoader" accept="image/*">
+        <button id="resetButton">Restablecer</button>
+        <button id="resetZoomButton">Restablecer Zoom</button>
+        <button id="grayscaleButton">Escala de Grises</button>
+    </div>
+
+    <canvas id="imageCanvas"></canvas>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
