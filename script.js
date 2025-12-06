@@ -1,4 +1,3 @@
-
 const imageLoader = document.getElementById('imageLoader');
 const resetButton = document.getElementById('resetButton');
 
@@ -8,12 +7,19 @@ const ratioInput = document.getElementById('canvasRatio');
 
 const grayscaleButton = document.getElementById('grayscaleButton');
 const resetZoomButton = document.getElementById('resetZoomButton');
+
 const canvas = document.getElementById('imageCanvas');
 const ctx = canvas.getContext('2d');
 
 let originalImage = new Image(); // Para guardar la imagen original
 let currentImage = new Image(); // Para la imagen actualmente mostrada/editada
 let scale = 1; // Variable para el nivel de zoom
+
+const config = {
+    subdivisiones: 3,
+    colorLineas: '#0f0',
+    grosorLineas: 2,
+}
 
 // Función para actualizar el zoom visualmente
 function updateZoom() {
@@ -24,9 +30,11 @@ function updateZoom() {
 // Función para cargar la imagen en el canvas
 function loadImageToCanvas(img) {
     // 1. Obtener dimensiones deseadas del input (en cm, pero usaremos la proporción)
-    const desiredWidthCm = parseFloat(document.getElementById('canvasWidth').value) || 30;
-    const desiredHeightCm = parseFloat(document.getElementById('canvasHeight').value) || 40;
+    const desiredWidthCm = parseFloat(widthInput.value) || 30;
+    const desiredHeightCm = parseFloat(heightInput.value) || 40;
     const targetAspectRatio = desiredWidthCm / desiredHeightCm;
+
+    console.log(targetAspectRatio);
 
     // 2. Determinar dimensiones del canvas basadas en la imagen y el ratio objetivo
     // Queremos que la imagen quepa enteramente (contain).
@@ -69,31 +77,17 @@ function loadImageToCanvas(img) {
     ctx.drawImage(img, x, y, imgWidth, imgHeight);
 
     // Resetear zoom al cargar nueva imagen
-    scale = 1;
-    updateZoom();
+    //scale = 1;
+    //updateZoom();
 
     // Llamar a la función al cargar la página
-    dibujarCuadricula(30); // Dibuja una cuadrícula de 25x25 píxeles
+    dibujarCuadricula();
 
     // Actualizar el texto de proporción si existe la función
     if (typeof updateAspectRatioText === 'function') {
         updateAspectRatioText();
     }
 }
-
-// Evento para cargar un archivo de imagen
-imageLoader.addEventListener('change', function (e) {
-    const reader = new FileReader();
-    reader.onload = function (event) {
-        originalImage.onload = function () {
-            // Guardar una copia de la imagen original
-            currentImage.src = originalImage.src; // Necesario para resetear
-            loadImageToCanvas(originalImage);
-        };
-        originalImage.src = event.target.result;
-    };
-    reader.readAsDataURL(e.target.files[0]);
-});
 
 // Función para procesar los píxeles
 function processImage(filterFunction) {
@@ -138,40 +132,6 @@ function grayscaleFilter(r, g, b, a) {
     const avg = (r + g + b) / 3;
     return { r: avg, g: avg, b: avg, a: a };
 }
-
-// --- Eventos de Botones ---
-
-grayscaleButton.addEventListener('click', () => {
-    processImage(grayscaleFilter);
-});
-
-resetButton.addEventListener('click', () => {
-    if (originalImage.src) {
-        currentImage.src = originalImage.src; // Restablecer la imagen actual a la original
-        loadImageToCanvas(originalImage);
-    } else {
-        alert('No hay imagen para restablecer.');
-    }
-});
-
-resetZoomButton.addEventListener('click', () => {
-    scale = 1;
-    updateZoom();
-});
-
-// --- Eventos de Teclado (Zoom) ---
-
-document.addEventListener('keydown', (e) => {
-    if (!originalImage.src) return; // No hacer zoom si no hay imagen
-
-    if (e.key === '+' || e.key === 'Equal' || e.key === 'Add') { // + o = (para teclados sin numpad)
-        scale += 0.1;
-        updateZoom();
-    } else if (e.key === '-' || e.key === 'Minus' || e.key === 'Subtract') { // -
-        scale = Math.max(0.1, scale - 0.1); // Evitar zoom negativo o 0
-        updateZoom();
-    }
-});
 
 /**
  * Usa el Algoritmo de Euclides para encontrar el Máximo Común Divisor (MCD)
@@ -236,19 +196,20 @@ function refreshCanvasLayout() {
     updateAspectRatioText();
 }
 
-function dibujarCuadricula(tamañoCelda = 20) {
-    if (!canvas.getContext) return; // Salir si el navegador no soporta canvas
+function dibujarCuadricula() {
+    const subdivisiones = config.subdivisiones;
+    const colorLineas = config.colorLineas;
+    const grosorLineas = config.grosorLineas;
 
-    const ctx = canvas.getContext('2d');
     const ancho = canvas.width;
     const alto = canvas.height;
 
     // Configuración del estilo de la cuadrícula
-    ctx.strokeStyle = '#0f0'; // Un gris muy claro
-    ctx.lineWidth = 1;      // Líneas delgadas
+    ctx.strokeStyle = colorLineas;
+    ctx.lineWidth = grosorLineas;
 
-    const tamañoCeldaAlto = alto / 3;
-    const tamañoCeldaAncho = ancho / 3;
+    const tamañoCeldaAlto = alto / subdivisiones;
+    const tamañoCeldaAncho = ancho / subdivisiones;
 
     // Dibujar Líneas Verticales
     for (let x = 0; x < ancho; x += tamañoCeldaAncho) {
@@ -269,11 +230,71 @@ function dibujarCuadricula(tamañoCelda = 20) {
     }
 }
 
-// Llamar a la función al cargar la página
-dibujarCuadricula(30); // Dibuja una cuadrícula de 25x25 píxeles
+/**
+ * Eventos
+ */
+
+// Evento para cargar un archivo de imagen
+imageLoader.addEventListener('change', function (e) {
+    const reader = new FileReader();
+    reader.onload = function (event) {
+        originalImage.onload = function () {
+            // Guardar una copia de la imagen original
+            currentImage.src = originalImage.src; // Necesario para resetear
+            loadImageToCanvas(originalImage);
+        };
+        originalImage.src = event.target.result;
+    };
+    reader.readAsDataURL(e.target.files[0]);
+});
+
+// Eventos de Teclado (Zoom)
+document.addEventListener('keydown', (e) => {
+    if (!originalImage.src) return; // No hacer zoom si no hay imagen
+
+    if (e.key === '+' || e.key === 'Equal' || e.key === 'Add') { // + o = (para teclados sin numpad)
+        scale += 0.1;
+        updateZoom();
+    } else if (e.key === '-' || e.key === 'Minus' || e.key === 'Subtract') { // -
+        scale = Math.max(0.1, scale - 0.1); // Evitar zoom negativo o 0
+        updateZoom();
+    }
+});
+
+/**
+ * Eventos de Botones
+ */
+
+// Botón de Escala de Grises
+grayscaleButton.addEventListener('click', () => {
+    processImage(grayscaleFilter);
+});
+
+// Botón de Restablecimiento
+resetButton.addEventListener('click', () => {
+    if (originalImage.src) {
+        currentImage.src = originalImage.src; // Restablecer la imagen actual a la original
+        loadImageToCanvas(originalImage);
+    } else {
+        alert('No hay imagen para restablecer.');
+    }
+});
+
+// Botón de Restablecimiento de Zoom
+resetZoomButton.addEventListener('click', () => {
+    scale = 1;
+    updateZoom();
+});
+
+/**
+ * Eventos de Inputs
+ */
 
 widthInput.addEventListener('change', refreshCanvasLayout);
 heightInput.addEventListener('change', refreshCanvasLayout);
+
+// Llamar a la función al cargar la página
+dibujarCuadricula();
 
 // Inicializar
 updateAspectRatioText();
