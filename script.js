@@ -10,6 +10,12 @@ const ratioInput = document.getElementById('canvasRatio');
 const grayscaleButton = document.getElementById('grayscaleButton');
 const resetZoomButton = document.getElementById('resetZoomButton');
 
+const columnsInput = document.getElementById('imgColumns');
+const rowsInput = document.getElementById('imgRows');
+const linesColorInput = document.getElementById('linesColor');
+const linesWidthInput = document.getElementById('linesWidth');
+const linesOpacityInput = document.getElementById('linesOpacity');
+
 const canvas = document.getElementById('imageCanvas');
 const ctx = canvas.getContext('2d');
 
@@ -18,9 +24,11 @@ let currentImage = new Image();
 let scale = 1;
 
 const config = {
-    subdivisiones: 3,
+    columnas: 3,
+    filas: 3,
     colorLineas: '#0f0',
     grosorLineas: 2,
+    opacidadLineas: 1,
 };
 
 // ==============================================
@@ -78,35 +86,100 @@ function updateZoom() {
 // ==============================================
 
 /**
- * Dibuja una cuadrícula sobre el canvas
+ * Dibuja una cuadrícula sobre el canvas con configuración personalizada
  */
 function dibujarCuadricula() {
-    const { subdivisiones, colorLineas, grosorLineas } = config;
+    const { columnas, filas, colorLineas, grosorLineas, opacidadLineas } = config;
     const ancho = canvas.width;
     const alto = canvas.height;
 
-    ctx.strokeStyle = colorLineas;
+    // Configurar color con opacidad
+    const rgbaColor = hexToRgba(colorLineas, opacidadLineas);
+    ctx.strokeStyle = rgbaColor;
     ctx.lineWidth = grosorLineas;
 
-    const tamañoCeldaAlto = alto / subdivisiones;
-    const tamañoCeldaAncho = ancho / subdivisiones;
+    // Calcular tamaño de celdas
+    const tamañoCeldaAncho = ancho / columnas;
+    const tamañoCeldaAlto = alto / filas;
 
-    // Líneas verticales
-    for (let x = 0; x < ancho; x += tamañoCeldaAncho) {
+    // Líneas verticales (columnas)
+    for (let col = 1; col < columnas; col++) {
+        const x = Math.floor(col * tamañoCeldaAncho) + 0.5;
         ctx.beginPath();
-        ctx.moveTo(Math.floor(x) + 0.5, 0);
-        ctx.lineTo(Math.floor(x) + 0.5, alto);
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, alto);
         ctx.stroke();
     }
 
-    // Líneas horizontales
-    for (let y = 0; y < alto; y += tamañoCeldaAlto) {
+    // Líneas horizontales (filas)
+    for (let fila = 1; fila < filas; fila++) {
+        const y = Math.floor(fila * tamañoCeldaAlto) + 0.5;
         ctx.beginPath();
-        ctx.moveTo(0, Math.floor(y) + 0.5);
-        ctx.lineTo(ancho, Math.floor(y) + 0.5);
+        ctx.moveTo(0, y);
+        ctx.lineTo(ancho, y);
         ctx.stroke();
     }
 }
+
+/**
+ * Convierte color hexadecimal a RGBA con opacidad
+ */
+function hexToRgba(hex, opacity) {
+    // Eliminar el # si existe
+    hex = hex.replace('#', '');
+    
+    // Convertir valores hex a decimal
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+}
+
+/**
+ * Actualiza la configuración de las líneas desde los controles
+ */
+function actualizarConfiguracionLineas() {
+    config.columnas = parseInt(columnsInput.value) || 3;
+    config.filas = parseInt(rowsInput.value) || 3;
+    config.colorLineas = linesColorInput.value;
+    config.grosorLineas = parseInt(linesWidthInput.value) || 2;
+    config.opacidadLineas = parseFloat(linesOpacityInput.value) || 1;
+    
+    // Validar valores mínimos
+    if (config.columnas < 1) config.columnas = 1;
+    if (config.filas < 1) config.filas = 1;
+    if (config.grosorLineas < 1) config.grosorLineas = 1;
+    if (config.opacidadLineas < 0) config.opacidadLineas = 0;
+    if (config.opacidadLineas > 1) config.opacidadLineas = 1;
+    
+    // Actualizar controles con valores validados
+    columnsInput.value = config.columnas;
+    rowsInput.value = config.filas;
+    linesWidthInput.value = config.grosorLineas;
+    linesOpacityInput.value = config.opacidadLineas;
+}
+
+/**
+ * Redibuja la imagen actual con la nueva cuadrícula
+ */
+function redibujarConCuadricula() {
+    if (!currentImage.src) return;
+    
+    // Guardar estado actual de la imagen
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    tempCtx.drawImage(canvas, 0, 0);
+    
+    // Limpiar y redibujar
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(tempCanvas, 0, 0);
+    dibujarCuadricula();
+}
+
+
 
 /**
  * Carga y dibuja una imagen en el canvas con el aspecto especificado
@@ -246,9 +319,42 @@ resetZoomButton.addEventListener('click', () => {
 widthInput.addEventListener('change', refreshCanvasLayout);
 heightInput.addEventListener('change', refreshCanvasLayout);
 
+// Eventos para controles de líneas
+columnsInput.addEventListener('change', function() {
+    actualizarConfiguracionLineas();
+    redibujarConCuadricula();
+});
+
+rowsInput.addEventListener('change', function() {
+    actualizarConfiguracionLineas();
+    redibujarConCuadricula();
+});
+
+linesColorInput.addEventListener('change', function() {
+    actualizarConfiguracionLineas();
+    redibujarConCuadricula();
+});
+
+linesWidthInput.addEventListener('change', function() {
+    actualizarConfiguracionLineas();
+    redibujarConCuadricula();
+});
+
+linesOpacityInput.addEventListener('change', function() {
+    actualizarConfiguracionLineas();
+    redibujarConCuadricula();
+});
+
 // ==============================================
 // INICIALIZACIÓN
 // ==============================================
+
+// Inicializar controles con valores por defecto
+columnsInput.value = config.columnas;
+rowsInput.value = config.filas;
+linesColorInput.value = config.colorLineas;
+linesWidthInput.value = config.grosorLineas;
+linesOpacityInput.value = config.opacidadLineas;
 
 dibujarCuadricula();
 updateAspectRatioText();
