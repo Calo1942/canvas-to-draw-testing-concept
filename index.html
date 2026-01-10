@@ -16,12 +16,10 @@
             margin-bottom: 20px;
         }
 
-        canvas {
-            background-color: #337;
-            border: 1px solid #ccc;
+        #imageCanvas {
+            background-color: #ccc;
             display: block;
-            margin-top: 20px;
-            border-radius: 5px;
+            margin: 0;
         }
 
         button {
@@ -40,29 +38,95 @@
         input[type="file"] {
             margin-right: 10px;
         }
+
+        #container {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            min-height: 87vh;
+        }
+        
+        #canvasContainer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #mainContainer {
+            height: calc(100vh - 40px);
+        }
+
+        #contentContainer > * {
+            border: 3px solid #ccc;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+        }
+
+    @media (max-width: 1010px) {
+        .controls-grid {
+            grid-template-columns: 1fr;
+        }
+    }
     </style>
 </head>
 
 <body>
-    <h1>Editar Colores de Imagen</h1>
-    <div class="controls">
-        <div class="canvas-size" style="border: 1px solid #333; padding: 10px;">
-            <label for="canvasWidth">Ancho del Canvas (cm):</label>
-            <input type="number" id="canvasWidth" value="30">
-            <label for="canvasHeight">Alto del Canvas (cm):</label>
-            <input type="number" id="canvasHeight" value="40">
-            <label for="canvasRatio">Proporcion del Canvas (cm):</label>
-            <input type="text" id="canvasRatio" value="16:9" disabled>
+
+    <div id="mainContainer">
+        <h1>Editar Colores de Imagen</h1>
+        <div id="container">
+
+            <div id="contentContainer" class="controls-grid">
+                <div id="controlsContainer">
+                    <div class=" canvas-size" style="border: 1px solid #333; padding: 10px;">
+                        <label for="canvasWidth">Ancho del Canvas (cm):</label>
+                        <input type="number" id="canvasWidth" value="30">
+                        <br>
+                        <label for="canvasHeight">Alto del Canvas (cm):</label>
+                        <input type="number" id="canvasHeight" value="40">
+                        <br>
+                        <label for="canvasRatio">Proporcion del Canvas (cm):</label>
+                        <input type="text" id="canvasRatio" value="16:9" disabled>
+                        <br>
+                        <label>Lineas</label>
+                        <br>
+                        <label for="imgColumns">Numero de Columnas:</label>
+                        <input type="number" id="imgColumns" value="3">
+                        <br>
+                        <label for="imgRows">Numero de Filas:</label>
+                        <input type="number" id="imgRows" value="3">
+                        <br>
+                        <label for="linesColor">Color de las lineas:</label>
+                        <input type="color" id="linesColor" value="#FFFFFF">
+                        <br>
+                        <label for="linesWidth">Ancho de las lineas:</label>
+                        <input type="number" id="linesWidth" value="1">
+                        <br>
+                        <label for="linesOpacity">Opacidad de las lineas:</label>
+                        <input type="number" id="linesOpacity" value="1">
+
+                    </div>
+                    <div>
+                        <input type="file" id="imageLoader" accept="image/*">
+                        <br>
+                        <button id="resetButton">Restablecer</button>
+                        <button id="resetZoomButton">Restablecer Zoom</button>
+                        <button id="grayscaleButton">Escala de Grises</button>
+                    </div>
+                </div>
+
+                <div id="canvasContainer">
+                    <canvas id="imageCanvas"></canvas>
+                </div>
+            </div>
         </div>
-        <input type="file" id="imageLoader" accept="image/*">
-        <button id="resetButton">Restablecer</button>
-        <button id="resetZoomButton">Restablecer Zoom</button>
-        <button id="grayscaleButton">Escala de Grises</button>
+
+        <script src="script.js"></script>
     </div>
-
-    <canvas id="imageCanvas"></canvas>
-
-    <script src="script.js"></script>
 
 </body>
 
